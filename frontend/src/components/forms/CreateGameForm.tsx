@@ -13,6 +13,11 @@ interface CreateGameFormProps {
 }
 
 const schema = yup.object({
+  playerName: yup
+    .string()
+    .min(2, 'Player name must be at least 2 characters')
+    .max(20, 'Player name must be less than 20 characters')
+    .required('Player name is required'),
   maxPlayers: yup
     .number()
     .min(GAME_CONSTANTS.MIN_PLAYERS, `Minimum ${GAME_CONSTANTS.MIN_PLAYERS} players`)
@@ -33,6 +38,7 @@ const CreateGameForm: React.FC<CreateGameFormProps> = ({
   } = useForm<CreateGameRequest>({
     resolver: yupResolver(schema),
     defaultValues: {
+      playerName: '',
       maxPlayers: GAME_CONSTANTS.DEFAULT_MAX_PLAYERS,
     },
   });
@@ -52,6 +58,23 @@ const CreateGameForm: React.FC<CreateGameFormProps> = ({
         <p className="text-sm text-gray-600 mb-6">
           Create a new game room and invite other players to join.
         </p>
+      </div>
+
+      <div>
+        <label htmlFor="playerName" className="block text-sm font-medium text-gray-700 mb-2">
+          Player Name
+        </label>
+        <input
+          id="playerName"
+          type="text"
+          {...register('playerName')}
+          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 sm:text-sm"
+        />
+        {errors.playerName && (
+          <p className="mt-1 text-sm text-danger-600">
+            {errors.playerName.message}
+          </p>
+        )}
       </div>
 
       <div>

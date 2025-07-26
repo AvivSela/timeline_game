@@ -11,10 +11,11 @@ export default defineConfig({
     },
   },
   server: {
-    port: 3001,
+    port: 3002, // Changed from 3000 to 3002
+    strictPort: true, // Don't try other ports if 3002 is in use
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'http://localhost:3001',
         changeOrigin: true,
         secure: false,
       },

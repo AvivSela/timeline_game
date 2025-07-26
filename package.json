@@ -1,0 +1,58 @@
+{
+  "name": "timeline-game",
+  "version": "1.0.0",
+  "description": "Timeline Educational Card Game - Full Stack Application",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "concurrently \"yarn dev:backend\" \"yarn dev:frontend\"",
+    "dev:frontend": "cd frontend && yarn dev",
+    "dev:backend": "cd backend && yarn dev",
+    "build": "yarn build:frontend && yarn build:backend",
+    "build:frontend": "cd frontend && yarn build",
+    "build:backend": "cd backend && yarn build",
+    "test": "yarn test:frontend && yarn test:backend",
+    "test:frontend": "cd frontend && yarn test",
+    "test:backend": "cd backend && yarn test",
+    "test:coverage": "yarn test:frontend:coverage && yarn test:backend:coverage",
+    "test:frontend:coverage": "cd frontend && yarn test:coverage",
+    "test:backend:coverage": "cd backend && yarn test:coverage",
+    "lint": "yarn lint:frontend && yarn lint:backend",
+    "lint:frontend": "cd frontend && yarn lint",
+    "lint:backend": "cd backend && yarn lint",
+    "lint:fix": "yarn lint:fix:frontend && yarn lint:fix:backend",
+    "lint:fix:frontend": "cd frontend && yarn lint:fix",
+    "lint:fix:backend": "cd backend && yarn lint:fix",
+    "install:all": "yarn install && cd frontend && yarn install && cd ../backend && yarn install",
+    "clean": "yarn clean:frontend && yarn clean:backend",
+    "clean:frontend": "cd frontend && rm -rf node_modules dist coverage",
+    "clean:backend": "cd backend && rm -rf node_modules dist coverage",
+    "start": "concurrently \"yarn start:backend\" \"yarn start:frontend\"",
+    "start:frontend": "cd frontend && yarn preview",
+    "start:backend": "cd backend && yarn start"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "yarn": ">=1.22.0"
+  },
+  "keywords": [
+    "timeline",
+    "game",
+    "educational",
+    "cards",
+    "history",
+    "react",
+    "typescript",
+    "nodejs",
+    "express",
+    "prisma"
+  ],
+  "author": "",
+  "license": "MIT"
+} 

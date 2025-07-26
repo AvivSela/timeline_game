@@ -58,12 +58,16 @@ describe('CreateGameForm Component', () => {
       const mockOnSubmit = vi.fn();
       render(<CreateGameForm onSubmit={mockOnSubmit} />);
       
-      const submitButton = screen.getByRole('button', { name: /create game/i });
+      // Fill in player name first
+      const playerNameInput = screen.getByLabelText(/player name/i);
+      await user.type(playerNameInput, 'TestPlayer');
       
+      const submitButton = screen.getByRole('button', { name: /create game/i });
       await user.click(submitButton);
       
       await waitFor(() => {
         expect(mockOnSubmit).toHaveBeenCalledWith({
+          playerName: 'TestPlayer',
           maxPlayers: 4,
         });
       });
@@ -118,12 +122,17 @@ describe('CreateGameForm Component', () => {
       expect(slider).toHaveValue('2');
       expect(valueDisplay).toHaveTextContent('2');
       
+      // Fill in player name first
+      const playerNameInput = screen.getByLabelText(/player name/i);
+      await user.type(playerNameInput, 'TestPlayer');
+      
       const submitButton = screen.getByRole('button', { name: /create game/i });
       await user.click(submitButton);
       
       // Should submit successfully with minimum value
       await waitFor(() => {
         expect(mockOnSubmit).toHaveBeenCalledWith({
+          playerName: 'TestPlayer',
           maxPlayers: 2,
         });
       });
@@ -142,12 +151,17 @@ describe('CreateGameForm Component', () => {
       expect(slider).toHaveValue('8');
       expect(valueDisplay).toHaveTextContent('8');
       
+      // Fill in player name first
+      const playerNameInput = screen.getByLabelText(/player name/i);
+      await user.type(playerNameInput, 'TestPlayer');
+      
       const submitButton = screen.getByRole('button', { name: /create game/i });
       await user.click(submitButton);
       
       // Should submit successfully with maximum value
       await waitFor(() => {
         expect(mockOnSubmit).toHaveBeenCalledWith({
+          playerName: 'TestPlayer',
           maxPlayers: 8,
         });
       });
@@ -189,11 +203,17 @@ describe('CreateGameForm Component', () => {
         expect(slider).toHaveValue(value.toString());
         expect(valueDisplay).toHaveTextContent(value.toString());
         
+        // Fill in player name first
+        const playerNameInput = screen.getByLabelText(/player name/i);
+        await user.clear(playerNameInput);
+        await user.type(playerNameInput, 'TestPlayer');
+        
         const submitButton = screen.getByRole('button', { name: /create game/i });
         await user.click(submitButton);
         
         await waitFor(() => {
           expect(mockOnSubmit).toHaveBeenCalledWith({
+            playerName: 'TestPlayer',
             maxPlayers: value,
           });
         });
@@ -223,11 +243,17 @@ describe('CreateGameForm Component', () => {
         expect(slider).toHaveValue(value.toString());
         expect(valueDisplay).toHaveTextContent(value.toString());
         
+        // Fill in player name first
+        const playerNameInput = screen.getByLabelText(/player name/i);
+        await user.clear(playerNameInput);
+        await user.type(playerNameInput, 'TestPlayer');
+        
         const submitButton = screen.getByRole('button', { name: /create game/i });
         await user.click(submitButton);
         
         await waitFor(() => {
           expect(mockOnSubmit).toHaveBeenCalledWith({
+            playerName: 'TestPlayer',
             maxPlayers: expected,
           });
         });
@@ -278,12 +304,17 @@ describe('CreateGameForm Component', () => {
       fireEvent.change(slider, { target: { value: '6' } });
       expect(valueDisplay).toHaveTextContent('6');
       
+      // Fill in player name first
+      const playerNameInput = screen.getByLabelText(/player name/i);
+      await user.type(playerNameInput, 'TestPlayer');
+      
       // Submit form
       const submitButton = screen.getByRole('button', { name: /create game/i });
       await user.click(submitButton);
       
       await waitFor(() => {
         expect(mockOnSubmit).toHaveBeenCalledWith({
+          playerName: 'TestPlayer',
           maxPlayers: 6,
         });
       });
@@ -383,11 +414,16 @@ describe('CreateGameForm Component', () => {
       expect(slider).toHaveValue('2');
       expect(valueDisplay).toHaveTextContent('2');
       
+      // Fill in player name first
+      const playerNameInput = screen.getByLabelText(/player name/i);
+      await user.type(playerNameInput, 'TestPlayer');
+      
       const submitButton = screen.getByRole('button', { name: /create game/i });
       await user.click(submitButton);
       
       await waitFor(() => {
         expect(mockOnSubmit).toHaveBeenCalledWith({
+          playerName: 'TestPlayer',
           maxPlayers: 2,
         });
       });
@@ -406,11 +442,16 @@ describe('CreateGameForm Component', () => {
       expect(slider).toHaveValue('8');
       expect(valueDisplay).toHaveTextContent('8');
       
+      // Fill in player name first
+      const playerNameInput = screen.getByLabelText(/player name/i);
+      await user.type(playerNameInput, 'TestPlayer');
+      
       const submitButton = screen.getByRole('button', { name: /create game/i });
       await user.click(submitButton);
       
       await waitFor(() => {
         expect(mockOnSubmit).toHaveBeenCalledWith({
+          playerName: 'TestPlayer',
           maxPlayers: 8,
         });
       });

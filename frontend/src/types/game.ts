@@ -17,6 +17,7 @@ export interface Game {
 }
 
 export interface CreateGameRequest {
+  playerName: string;
   maxPlayers: number;
 }
 

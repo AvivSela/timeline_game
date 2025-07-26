@@ -48,3 +48,6 @@ alwaysApply: true
 - Never push to remote repositories without explicit permission
 - Ask for confirmation before pushing commits
 - Follow the user's exact git commands without adding additional actions
+
+# testing 
+- execute tests with --run in order to prevent the test execution wait for q button
