@@ -1,0 +1,89 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum GamePhase {
+  WAITING
+  PLAYING
+  FINISHED
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+model Game {
+  id          String   @id @default(cuid())
+  roomCode    String   @unique
+  state       Json     @default("{}")
+  phase       GamePhase @default(WAITING)
+  maxPlayers  Int      @default(8)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  players     Player[]
+  timelineCards TimelineCard[]
+
+  @@index([roomCode])
+  @@index([phase])
+}
+
+model Card {
+  id                  String     @id @default(cuid())
+  name                String
+  description         String
+  chronologicalValue  Int
+  difficulty          Difficulty @default(MEDIUM)
+  category            String
+  imageUrl            String?
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+
+  timelineCards       TimelineCard[]
+
+  @@index([chronologicalValue])
+  @@index([difficulty])
+  @@index([category])
+}
+
+model Player {
+  id            String   @id @default(cuid())
+  name          String
+  gameId        String
+  handCards     Json     @default("[]")
+  isCurrentTurn Boolean  @default(false)
+  score         Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  game          Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@index([gameId])
+  @@index([isCurrentTurn])
+}
+
+model TimelineCard {
+  id        String   @id @default(cuid())
+  gameId    String
+  cardId    String
+  position  Int
+  placedAt  DateTime @default(now())
+
+  game      Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  card      Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+  @@index([gameId])
+  @@index([cardId])
+  @@index([position])
+} 
