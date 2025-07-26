@@ -1,0 +1,8 @@
+---
+alwaysApply: false
+---
+find out all the modifyied files using the git status command 
+create commit message based on the diff 
+add all modified files 
+
+
