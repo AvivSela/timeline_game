@@ -56,6 +56,28 @@ describe('DatabaseService', () => {
       expect(updatedGame.phase).toBe(GamePhase.PLAYING);
     });
 
+    test('should update game state', async () => {
+      const game = await dbService.createGame(testRoomCode, 4);
+      const newState = { currentTurn: 1, round: 2, maxRounds: 5 };
+      const updatedGame = await dbService.updateGameState(testRoomCode, newState);
+      
+      expect(updatedGame.state).toEqual(newState);
+    });
+
+    test('should get game with players', async () => {
+      const game = await dbService.createGame(testRoomCode, 4);
+      await dbService.addPlayerToGame(testRoomCode, 'Player1');
+      await dbService.addPlayerToGame(testRoomCode, 'Player2');
+      
+      const gameWithPlayers = await dbService.getGameWithPlayers(testRoomCode);
+      
+      expect(gameWithPlayers).toBeDefined();
+      expect(gameWithPlayers?.players).toBeDefined();
+      expect(gameWithPlayers?.players.length).toBe(2);
+      expect(gameWithPlayers?.players[0].name).toBe('Player1');
+      expect(gameWithPlayers?.players[1].name).toBe('Player2');
+    });
+
     test('should return null for non-existent room code', async () => {
       const game = await dbService.findGameByRoomCode('NONEXISTENT');
       expect(game).toBeNull();
@@ -116,6 +138,19 @@ describe('DatabaseService', () => {
         where: { id: player1.id }
       });
       expect(player1Updated?.isCurrentTurn).toBe(false);
+    });
+
+    test('should throw error when setting current turn for non-existent player', async () => {
+      await expect(
+        dbService.setCurrentTurn('non-existent-player-id')
+      ).rejects.toThrow('Player not found');
+    });
+
+    test('should update player score', async () => {
+      const player = await dbService.addPlayerToGame(testRoomCode, 'TestPlayer');
+      const updatedPlayer = await dbService.updatePlayerScore(player.id, 100);
+      
+      expect(updatedPlayer.score).toBe(100);
     });
   });
 
@@ -190,6 +225,12 @@ describe('DatabaseService', () => {
       expect(timeline[0]).toHaveProperty('cardId');
     });
 
+    test('should throw error when getting timeline for non-existent game', async () => {
+      await expect(
+        dbService.getTimelineForGame('NONEXISTENT')
+      ).rejects.toThrow('Game not found');
+    });
+
     test('should remove card from timeline', async () => {
       const timelineCard = await dbService.addCardToTimeline(gameId, cardId, 0);
       await dbService.removeCardFromTimeline(timelineCard.id);
@@ -214,6 +255,10 @@ describe('DatabaseService', () => {
       expect(await dbService.getPlayerCount(testRoomCode)).toBe(2);
     });
 
+    test('should return 0 player count for non-existent game', async () => {
+      expect(await dbService.getPlayerCount('NONEXISTENT')).toBe(0);
+    });
+
     test('should check if game is full', async () => {
       expect(await dbService.isGameFull(testRoomCode)).toBe(false);
       
@@ -226,6 +271,10 @@ describe('DatabaseService', () => {
       expect(await dbService.isGameFull(testRoomCode)).toBe(true);
     });
 
+    test('should return false for non-existent game when checking if full', async () => {
+      expect(await dbService.isGameFull('NONEXISTENT')).toBe(false);
+    });
+
     test('should get game with players and timeline', async () => {
       await dbService.addPlayerToGame(testRoomCode, 'Player1');
       
@@ -235,6 +284,54 @@ describe('DatabaseService', () => {
       expect(gameWithData?.players).toBeDefined();
       expect(gameWithData?.players.length).toBe(1);
       expect(gameWithData?.timelineCards).toBeDefined();
+    });
+
+    test('should cleanup inactive games', async () => {
+      // Create a game that should be cleaned up (old enough)
+      const oldGame = await dbService.createGame('OLDGAME', 4);
+      
+      // Manually update the game to be old (24+ hours ago)
+      await dbService.prisma.game.update({
+        where: { id: oldGame.id },
+        data: { 
+          updatedAt: new Date(Date.now() - 25 * 60 * 60 * 1000), // 25 hours ago
+          phase: GamePhase.WAITING
+        }
+      });
+
+      // Run cleanup
+      const cleanedCount = await dbService.cleanupInactiveGames(24);
+      
+      // Should have cleaned up at least the old game
+      expect(cleanedCount).toBeGreaterThan(0);
+      
+      // Verify the old game is gone
+      const oldGameAfterCleanup = await dbService.findGameByRoomCode('OLDGAME');
+      expect(oldGameAfterCleanup).toBeNull();
+    });
+
+    test('should cleanup inactive games with custom hours threshold', async () => {
+      // Create a game that should be cleaned up (old enough for 1 hour threshold)
+      const oldGame = await dbService.createGame('OLDGAME2', 4);
+      
+      // Manually update the game to be old (2 hours ago)
+      await dbService.prisma.game.update({
+        where: { id: oldGame.id },
+        data: { 
+          updatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+          phase: GamePhase.FINISHED
+        }
+      });
+
+      // Run cleanup with 1 hour threshold
+      const cleanedCount = await dbService.cleanupInactiveGames(1);
+      
+      // Should have cleaned up the old game
+      expect(cleanedCount).toBeGreaterThan(0);
+      
+      // Verify the old game is gone
+      const oldGameAfterCleanup = await dbService.findGameByRoomCode('OLDGAME2');
+      expect(oldGameAfterCleanup).toBeNull();
     });
   });
 }); 
