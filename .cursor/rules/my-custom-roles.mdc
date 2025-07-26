@@ -1,0 +1,27 @@
+---
+alwaysApply: true
+---
+
+# Clean Code Principles
+- Follow clean code principles and best practices
+- Write readable, maintainable, and well-documented code
+- Use meaningful variable and function names
+- Keep functions small and focused on a single responsibility
+- Avoid code duplication and favor DRY (Don't Repeat Yourself) principles
+
+# Feature Implementation Guidelines
+- Only implement features that are explicitly requested
+- Do not add functionality unless specifically asked for
+- Ask for clarification if requirements are unclear
+- Focus on the core requirements without adding unnecessary complexity
+
+# Code Change Philosophy
+- Make minimal, targeted changes to achieve the desired outcome
+- Prefer small, incremental improvements over large refactoring
+- Only modify code that directly addresses the current task
+- Avoid unnecessary modifications to unrelated code sections
+
+# Communication Style
+- Provide clear, concise explanations for code changes
+- When suggesting improvements, explain the reasoning behind them
+- Be direct and avoid over-engineering solutions

@@ -1,0 +1,20 @@
+{
+  "name": "timeline-game-backend",
+  "version": "1.0.0",
+  "description": "Backend server for Timeline Educational Card Game",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "jest",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix"
+  },
+  "keywords": ["timeline", "game", "educational", "cards", "history"],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

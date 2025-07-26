@@ -1,0 +1,84 @@
+---
+alwaysApply: true
+---
+
+# Development Workflow Guidelines
+
+## Package Management
+- Always use `yarn` for package management (install, add, remove, etc.)
+- Prefer `yarn` over `npm` for all package operations
+- Use `yarn.lock` for dependency version locking
+
+## Documentation Standards
+- Update `README.md` file when implementing new features or making significant changes
+- Keep documentation current and accurate
+- Include setup instructions, usage examples, and API documentation when relevant
+
+## Technical Debt Management
+- Add technical debt items to `tech_debt.md` file when identified
+- Include context, impact, and suggested solutions for each tech debt item
+- Prioritize tech debt items by severity and impact
+
+## Code Quality Standards
+- Follow clean code principles and best practices
+- Write readable, maintainable, and well-documented code
+- Use meaningful variable and function names
+- Keep functions small and focused on single responsibility
+- Avoid code duplication (DRY principle)
+
+## Feature Implementation
+- Only implement features that are explicitly requested
+- Do not add functionality unless specifically asked for
+- Ask for clarification if requirements are unclear
+- Focus on core requirements without unnecessary complexity
+
+## Code Change Philosophy
+- Make minimal, targeted changes to achieve desired outcomes
+- Prefer small, incremental improvements over large refactoring
+- Only modify code that directly addresses the current task
+- Avoid unnecessary modifications to unrelated code sections
+
+## Communication Style
+- Provide clear, concise explanations for code changes
+- When suggesting improvements, explain the reasoning behind them
+- Be direct and avoid over-engineering solutions
+# Development Workflow Guidelines
+
+## Package Management
+- Always use `yarn` for package management (install, add, remove, etc.)
+- Prefer `yarn` over `npm` for all package operations
+- Use `yarn.lock` for dependency version locking
+
+## Documentation Standards
+- Update `README.md` file when implementing new features or making significant changes
+- Keep documentation current and accurate
+- Include setup instructions, usage examples, and API documentation when relevant
+
+## Technical Debt Management
+- Add technical debt items to `tech_debt.md` file when identified
+- Include context, impact, and suggested solutions for each tech debt item
+- Prioritize tech debt items by severity and impact
+
+## Code Quality Standards
+- Follow clean code principles and best practices
+- Write readable, maintainable, and well-documented code
+- Use meaningful variable and function names
+- Keep functions small and focused on single responsibility
+- Avoid code duplication (DRY principle)
+
+## Feature Implementation
+- Only implement features that are explicitly requested
+- Do not add functionality unless specifically asked for
+- Ask for clarification if requirements are unclear
+- Focus on core requirements without unnecessary complexity
+
+## Code Change Philosophy
+- Make minimal, targeted changes to achieve desired outcomes
+- Prefer small, incremental improvements over large refactoring
+- Only modify code that directly addresses the current task
+- Avoid unnecessary modifications to unrelated code sections
+
+## Communication Style
+- Provide clear, concise explanations for code changes
+- When suggesting improvements, explain the reasoning behind them
+- Be direct and avoid over-engineering solutions
