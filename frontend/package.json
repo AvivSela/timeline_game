@@ -8,9 +8,9 @@
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "test": "vitest",
+    "test": "vitest --run",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage --run"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.0",
@@ -22,11 +22,9 @@
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.61.1",
     "react-router-dom": "^7.7.1",
-    "tailwindcss": "^4.1.11",
     "yup": "^1.6.1"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.1.11",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.4",
     "@testing-library/react": "^16.3.0",
@@ -41,6 +39,7 @@
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.14",
     "jsdom": "^26.1.0",
+    "tailwindcss": "^3.4.0",
     "typescript": "^5.6.3",
     "vite": "^5.4.10",
     "vitest": "^3.2.4"
