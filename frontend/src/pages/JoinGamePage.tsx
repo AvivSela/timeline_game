@@ -1,0 +1,111 @@
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Header from '@/components/layout/Header';
+import Container from '@/components/layout/Container';
+import JoinGameForm from '@/components/forms/JoinGameForm';
+import Button from '@/components/common/Button';
+import { useGame } from '@/hooks/useGame';
+import { JoinGameRequest } from '@/types/game';
+import { SUCCESS_MESSAGES } from '@/utils/constants';
+
+const JoinGamePage: React.FC = () => {
+  const navigate = useNavigate();
+  const { joinGame, loading, error } = useGame();
+  const [success, setSuccess] = useState<{ gameId: string } | null>(null);
+
+  const handleSubmit = async (data: JoinGameRequest) => {
+    const game = await joinGame(data);
+    if (game) {
+      setSuccess({
+        gameId: game.id,
+      });
+    }
+  };
+
+  const handleBackToHome = () => {
+    navigate('/');
+  };
+
+  if (success) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <Container maxWidth="lg" className="py-12">
+          <div className="card max-w-md mx-auto">
+            <div className="card-body text-center">
+              <div className="w-16 h-16 bg-success-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg
+                  className="w-8 h-8 text-success-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </div>
+              
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                Successfully Joined!
+              </h2>
+              <p className="text-gray-600 mb-6">
+                {SUCCESS_MESSAGES.GAME_JOINED}
+              </p>
+
+              <div className="space-y-3">
+                <Button
+                  onClick={() => navigate(`/game/${success.gameId}`)}
+                  className="w-full"
+                >
+                  Go to Game Room
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleBackToHome}
+                  className="w-full"
+                >
+                  Back to Home
+                </Button>
+              </div>
+            </div>
+          </div>
+        </Container>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      <Container maxWidth="lg" className="py-12">
+        <div className="max-w-md mx-auto">
+          <div className="mb-6">
+            <Button
+              variant="outline"
+              onClick={handleBackToHome}
+              className="mb-4"
+            >
+              ← Back to Home
+            </Button>
+          </div>
+          
+          <div className="card">
+            <div className="card-body">
+              <JoinGameForm
+                onSubmit={handleSubmit}
+                loading={loading}
+                error={error?.message}
+              />
+            </div>
+          </div>
+        </div>
+      </Container>
+    </div>
+  );
+};
+
+export default JoinGamePage; 
