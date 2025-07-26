@@ -11,7 +11,6 @@ module.exports = {
     '!src/**/*.d.ts',
     '!src/tests/**/*.ts',
     '!src/**/index.ts',
-    '!src/services/RedisService.ts',
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
