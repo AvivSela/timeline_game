@@ -17,6 +17,16 @@ const JoinGamePage: React.FC = () => {
     try {
       const game = await joinGame(data);
       if (game) {
+        // Store the current player ID in localStorage
+        // We need to get the player ID from the game response
+        // Since the useGame hook doesn't return the player data directly,
+        // we'll need to extract it from the game data or make an additional call
+        const currentPlayer = game.players.find(p => p.name === data.playerName);
+        if (currentPlayer) {
+          localStorage.setItem('currentPlayerId', currentPlayer.id);
+          localStorage.setItem('currentPlayerName', currentPlayer.name);
+        }
+        
         setSuccess({
           gameId: game.id,
         });

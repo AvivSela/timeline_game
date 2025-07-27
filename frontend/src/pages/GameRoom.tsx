@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import GameBoard from '@/components/game/GameBoard';
 import PlayerHand from '@/components/game/PlayerHand';
@@ -28,17 +28,70 @@ const GameRoom: React.FC = () => {
   const [players, setPlayers] = useState<Player[]>([]);
   const [turnInfo, setTurnInfo] = useState<TurnInfo | null>(null);
   const [events, setEvents] = useState<GameEvent[]>([]);
+  const [roomCode, setRoomCode] = useState<string | null>(null);
 
   const [isCurrentTurn, setIsCurrentTurn] = useState(false);
 
-  // Mock current player ID - in real app this would come from auth context
-  const mockCurrentPlayerId = 'player-1';
+  // Get current player ID from localStorage
+  const [currentPlayerId, setCurrentPlayerId] = useState<string | null>(null);
 
   useEffect(() => {
+    // Load current player ID from localStorage
+    const storedPlayerId = localStorage.getItem('currentPlayerId');
+    
+    if (storedPlayerId) {
+      setCurrentPlayerId(storedPlayerId);
+    }
+    
     if (gameId) {
       initializeGame();
     }
   }, [gameId]);
+
+  const loadGameState = useCallback(async (gameRoomCode?: string) => {
+    try {
+      const codeToUse = gameRoomCode || roomCode;
+      if (!codeToUse) {
+        console.error('Room code not available');
+        return;
+      }
+
+      if (!currentPlayerId) {
+        console.error('Current player ID not available');
+        setError('Player session not found. Please join the game again.');
+        return;
+      }
+
+      // Load player hand
+      const handResponse = await gameService.getPlayerHand(codeToUse, currentPlayerId);
+      setPlayerHand(handResponse.hand);
+
+      // Load timeline
+      const timelineResponse = await gameService.getTimeline(codeToUse);
+      setTimeline(timelineResponse.timeline);
+
+      // Load turn info
+      const turnResponse = await gameService.getTurnInfo(codeToUse);
+      setTurnInfo(turnResponse.turnInfo);
+      setIsCurrentTurn(turnResponse.turnInfo.currentPlayer?.id === currentPlayerId);
+
+      // Load players (refresh)
+      const gameResponse = await gameService.getGame(gameId!);
+      setPlayers(gameResponse.players);
+    } catch (err) {
+      console.error('Load game state error:', err);
+    }
+  }, [roomCode, currentPlayerId, gameId]);
+
+  // Set up polling for game updates
+  useEffect(() => {
+    if (!roomCode || !currentPlayerId) {
+      return;
+    }
+
+    const interval = setInterval(loadGameState, 2000);
+    return () => clearInterval(interval);
+  }, [roomCode, currentPlayerId, loadGameState]);
 
   const initializeGame = async () => {
     try {
@@ -48,17 +101,14 @@ const GameRoom: React.FC = () => {
       // Get game details
       const gameResponse = await gameService.getGame(gameId!);
       setPlayers(gameResponse.players);
+      setRoomCode(gameResponse.roomCode);
 
       // Start the game if not already started
       if (gameResponse.status === 'waiting') {
-        await startGame();
+        await startGame(gameResponse.roomCode);
       } else {
-        await loadGameState();
+        await loadGameState(gameResponse.roomCode);
       }
-
-      // Set up polling for game updates
-      const interval = setInterval(loadGameState, 2000);
-      return () => clearInterval(interval);
     } catch (err) {
       setError('Failed to initialize game');
       console.error('Game initialization error:', err);
@@ -67,44 +117,33 @@ const GameRoom: React.FC = () => {
     }
   };
 
-  const startGame = async () => {
+  const startGame = async (gameRoomCode?: string) => {
     try {
-      await gameService.startGame(gameId!);
+      const codeToUse = gameRoomCode || roomCode;
+      if (!codeToUse) {
+        throw new Error('Room code not available');
+      }
+      await gameService.startGame(codeToUse);
       addEvent('game_started', 'Game started!');
-      await loadGameState();
+      await loadGameState(codeToUse);
     } catch (err) {
       setError('Failed to start game');
       console.error('Start game error:', err);
     }
   };
 
-  const loadGameState = async () => {
-    try {
-      // Load player hand
-      const handResponse = await gameService.getPlayerHand(gameId!, mockCurrentPlayerId);
-      setPlayerHand(handResponse.hand);
 
-      // Load timeline
-      const timelineResponse = await gameService.getTimeline(gameId!);
-      setTimeline(timelineResponse.timeline);
-
-      // Load turn info
-      const turnResponse = await gameService.getTurnInfo(gameId!);
-      setTurnInfo(turnResponse.turnInfo);
-      setIsCurrentTurn(turnResponse.turnInfo.currentPlayer?.id === mockCurrentPlayerId);
-
-      // Load players (refresh)
-      const gameResponse = await gameService.getGame(gameId!);
-      setPlayers(gameResponse.players);
-    } catch (err) {
-      console.error('Load game state error:', err);
-    }
-  };
 
   const handleCardDrop = async (cardId: string, position: number) => {
     try {
-      const response = await gameService.placeCard(gameId!, {
-        playerId: mockCurrentPlayerId,
+      if (!roomCode) {
+        throw new Error('Room code not available');
+      }
+      if (!currentPlayerId) {
+        throw new Error('Current player ID not available');
+      }
+      const response = await gameService.placeCard(roomCode, {
+        playerId: currentPlayerId,
         cardId,
         position
       });
@@ -122,7 +161,7 @@ const GameRoom: React.FC = () => {
       }
 
       // Reload game state
-      await loadGameState();
+      await loadGameState(roomCode);
     } catch (err) {
       setError('Failed to place card');
       console.error('Place card error:', err);

@@ -6,6 +6,7 @@ export interface IDatabaseService {
   findGameByRoomCode(roomCode: string): Promise<Game | null>;
   getGameById(gameId: string): Promise<Game | null>;
   getGameWithPlayers(roomCode: string): Promise<(Game & { players: Player[] }) | null>;
+  getGameWithPlayersById(gameId: string): Promise<(Game & { players: Player[] }) | null>;
   updateGameState(identifier: string, state: any): Promise<Game>;
   updateGamePhase(roomCode: string, phase: GamePhase): Promise<Game>;
 

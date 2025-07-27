@@ -31,9 +31,11 @@ describe('Server API', () => {
         .expect(200);
 
       expect(response.body).toHaveProperty('game');
-      expect(response.body).toHaveProperty('player');
+      expect(response.body).toHaveProperty('roomCode');
+      expect(response.body).toHaveProperty('gameId');
       expect(response.body.game.roomCode).toBeDefined();
-      expect(response.body.player.name).toBe('TestPlayer');
+      expect(response.body.game.players).toHaveLength(1);
+      expect(response.body.game.players[0].name).toBe('TestPlayer');
     });
 
     it('should create a game with default maxPlayers', async () => {

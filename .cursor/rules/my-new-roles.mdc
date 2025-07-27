@@ -50,4 +50,5 @@ alwaysApply: true
 - Follow the user's exact git commands without adding additional actions
 
 # testing 
-- execute tests with --run in order to prevent the test execution wait for q button
+- execute tests with yarn commands 
+- when adding or changing code, make sure there are tests that cover that code

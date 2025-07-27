@@ -73,15 +73,23 @@ app.post('/api/games', async (req, res) => {
     const player = await dbService.addPlayerToGame(roomCode, playerName);
 
     return res.json({
+      roomCode: game.roomCode,
+      gameId: game.id,
       game: {
         id: game.id,
         roomCode: game.roomCode,
+        status: game.phase.toLowerCase(),
         maxPlayers: game.maxPlayers,
-        phase: game.phase
-      },
-      player: {
-        id: player.id,
-        name: player.name
+        players: [{
+          id: player.id,
+          name: player.name,
+          isHost: true,
+          isReady: true,
+          joinedAt: new Date().toISOString(),
+          score: 0
+        }],
+        createdAt: game.createdAt.toISOString(),
+        updatedAt: game.updatedAt.toISOString()
       }
     });
   } catch (error) {
@@ -122,17 +130,33 @@ app.post('/api/games/join', async (req, res) => {
     // Add player to game
     const player = await dbService.addPlayerToGame(roomCode, playerName);
 
+    // Get updated game with all players
+    const updatedGameWithPlayers = await dbService.getGameWithPlayers(roomCode);
+    
     return res.json({
       game: {
         id: game.id,
         roomCode: game.roomCode,
+        status: game.phase.toLowerCase(),
         maxPlayers: game.maxPlayers,
-        phase: game.phase,
-        players: gameWithPlayers?.players.map((p: any) => ({ id: p.id, name: p.name })) || []
+        players: updatedGameWithPlayers?.players.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          isHost: p.id === updatedGameWithPlayers.players[0].id, // First player is host
+          isReady: true,
+          joinedAt: p.createdAt.toISOString(),
+          score: p.score || 0
+        })) || [],
+        createdAt: game.createdAt.toISOString(),
+        updatedAt: game.updatedAt.toISOString()
       },
       player: {
         id: player.id,
-        name: player.name
+        name: player.name,
+        isHost: false,
+        isReady: true,
+        joinedAt: player.createdAt.toISOString(),
+        score: player.score || 0
       }
     });
   } catch (error) {
@@ -163,6 +187,42 @@ app.get('/api/games/:roomCode', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching game:', error);
+    return res.status(500).json({ error: 'Failed to fetch game' });
+  }
+});
+
+// Get game by ID
+app.get('/api/games/id/:gameId', async (req, res) => {
+  try {
+    const { gameId } = req.params;
+    
+    // Get game with players using database service
+    const gameWithPlayers = await dbService.getGameWithPlayersById(gameId);
+    
+    if (!gameWithPlayers) {
+      return res.status(404).json({ error: 'Game not found' });
+    }
+
+    return res.json({
+      game: {
+        id: gameWithPlayers.id,
+        roomCode: gameWithPlayers.roomCode,
+        status: gameWithPlayers.phase.toLowerCase(),
+        maxPlayers: gameWithPlayers.maxPlayers,
+        players: gameWithPlayers.players.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          isHost: p.id === gameWithPlayers.players[0].id, // First player is host
+          isReady: true,
+          joinedAt: p.createdAt.toISOString(),
+          score: p.score || 0
+        })),
+        createdAt: gameWithPlayers.createdAt.toISOString(),
+        updatedAt: gameWithPlayers.updatedAt.toISOString()
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching game by ID:', error);
     return res.status(500).json({ error: 'Failed to fetch game' });
   }
 });

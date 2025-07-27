@@ -48,6 +48,13 @@ export class DatabaseService implements IDatabaseService {
     });
   }
 
+  async getGameWithPlayersById(gameId: string): Promise<Game & { players: Player[] } | null> {
+    return this.prisma.game.findUnique({
+      where: { id: gameId },
+      include: { players: true }
+    });
+  }
+
   async updateGameState(identifier: string, state: any): Promise<Game> {
     // Check if identifier is a room code (6 characters) or game ID (cuid)
     const isRoomCode = identifier.length === 6 && /^[A-Z0-9]+$/.test(identifier);

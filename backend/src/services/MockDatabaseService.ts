@@ -56,6 +56,14 @@ export class MockDatabaseService implements IDatabaseService {
     return { ...game, players };
   }
 
+  async getGameWithPlayersById(gameId: string): Promise<(Game & { players: Player[] }) | null> {
+    const game = Array.from(this.games.values()).find(g => g.id === gameId);
+    if (!game) return null;
+
+    const players = Array.from(this.players.values()).filter(p => p.gameId === game.id);
+    return { ...game, players };
+  }
+
   async updateGameState(roomCode: string, state: any): Promise<Game> {
     const game = this.games.get(roomCode);
     if (!game) throw new Error('Game not found');

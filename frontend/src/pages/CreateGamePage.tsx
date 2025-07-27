@@ -16,7 +16,12 @@ const CreateGamePage: React.FC = () => {
   const handleSubmit = async (data: CreateGameRequest) => {
     try {
       const game = await createGame(data);
-      if (game) {
+      if (game && game.players.length > 0) {
+        // Store the current player ID (first player is the host)
+        const currentPlayer = game.players[0];
+        localStorage.setItem('currentPlayerId', currentPlayer.id);
+        localStorage.setItem('currentPlayerName', currentPlayer.name);
+        
         setSuccess({
           roomCode: game.roomCode,
           gameId: game.id,

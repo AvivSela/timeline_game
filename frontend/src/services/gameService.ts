@@ -33,8 +33,8 @@ class GameService {
 
   async getGame(gameId: string): Promise<Game> {
     try {
-      const response = await apiClient.get<Game>(`/games/${gameId}`);
-      return response;
+      const response = await apiClient.get<{ game: Game }>(`/games/id/${gameId}`);
+      return response.game;
     } catch (error) {
       throw this.handleError(error);
     }
