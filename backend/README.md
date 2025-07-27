@@ -89,6 +89,28 @@ tests/               # Test files
 
 See `env.example` for all required environment variables.
 
+### Database Modes
+
+The application supports two database modes:
+
+1. **Normal Mode** (default): Connects to PostgreSQL database
+   - Requires valid `DATABASE_URL` and `DIRECT_URL` in `.env`
+   - Application will **fail to start** if database connection fails
+   - This ensures issues are caught early rather than silently falling back to mock data
+
+2. **Mock Mode** (for testing): Uses in-memory mock data
+   - Set `USE_MOCK_DB=true` environment variable
+   - Useful for unit tests and development without database
+   - Example: `USE_MOCK_DB=true yarn dev`
+
+### Fail-Fast Behavior
+
+The application implements a **fail-fast** approach:
+- If database connection fails in normal mode, the application exits with error
+- No silent fallback to mock data in production
+- Tests must explicitly opt-in to mock database usage
+- This prevents hidden issues and ensures database dependencies are properly configured
+
 ## Database Schema
 
 The database uses Prisma ORM with the following main models:

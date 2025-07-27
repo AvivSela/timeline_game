@@ -1,10 +1,16 @@
 import { PrismaClient, Game, Player, Card, TimelineCard, GamePhase, Difficulty } from '@prisma/client';
+import { IDatabaseService } from './IDatabaseService';
 
-export class DatabaseService {
+export class DatabaseService implements IDatabaseService {
   public prisma: PrismaClient;
 
   constructor() {
     this.prisma = new PrismaClient();
+  }
+
+  // Connection management
+  async connect(): Promise<void> {
+    await this.prisma.$connect();
   }
 
   // Game Operations

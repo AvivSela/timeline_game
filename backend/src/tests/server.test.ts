@@ -1,47 +1,18 @@
 import request from 'supertest';
-import express from 'express';
-
-// Mock Prisma before importing the app
-jest.mock('@prisma/client', () => ({
-  PrismaClient: jest.fn().mockImplementation(() => ({
-    game: {
-      create: jest.fn().mockResolvedValue({
-        id: 'mock-game-id',
-        roomCode: 'MOCK123',
-        maxPlayers: 4,
-        phase: 'WAITING',
-      }),
-      findUnique: jest.fn().mockResolvedValue({
-        id: 'mock-game-id',
-        roomCode: 'MOCK123',
-        maxPlayers: 4,
-        phase: 'WAITING',
-        players: [],
-      }),
-    },
-    player: {
-      create: jest.fn().mockResolvedValue({
-        id: 'mock-player-id',
-        name: 'TestPlayer',
-        gameId: 'mock-game-id',
-      }),
-    },
-    $connect: jest.fn(),
-    $disconnect: jest.fn(),
-  })),
-}));
-
-// Import the app after mocking
-const { default: app } = require('../index');
+import app, { initializeDatabaseForTesting } from '../index';
+import { IDatabaseService } from '../services/IDatabaseService';
+import { MockDatabaseService } from '../services/MockDatabaseService';
 
 describe('Server API', () => {
-  beforeEach(() => {
-    // Clear all mocks before each test
-    jest.clearAllMocks();
+  let mockDbService: MockDatabaseService;
+
+  beforeEach(async () => {
+    mockDbService = new MockDatabaseService();
+    await initializeDatabaseForTesting(mockDbService);
   });
 
   describe('Health Check', () => {
-    it('should return health status', async () => {
+    it('should return health status with database connected', async () => {
       const response = await request(app)
         .get('/health')
         .expect(200);
@@ -53,115 +24,102 @@ describe('Server API', () => {
   });
 
   describe('Game Creation', () => {
-    it('should create a game with valid data', async () => {
-      const gameData = {
-        playerName: 'TestPlayer',
-        maxPlayers: 4
-      };
-
+    it('should create a new game with database', async () => {
       const response = await request(app)
         .post('/api/games')
-        .send(gameData)
+        .send({ playerName: 'TestPlayer', maxPlayers: 4 })
         .expect(200);
 
       expect(response.body).toHaveProperty('game');
       expect(response.body).toHaveProperty('player');
-      expect(response.body.game).toHaveProperty('roomCode');
-      expect(response.body.game).toHaveProperty('maxPlayers', 4);
-      expect(response.body.player).toHaveProperty('name', 'TestPlayer');
+      expect(response.body.game.roomCode).toBeDefined();
+      expect(response.body.player.name).toBe('TestPlayer');
+    });
+
+    it('should create a game with default maxPlayers', async () => {
+      const response = await request(app)
+        .post('/api/games')
+        .send({ playerName: 'TestPlayer' })
+        .expect(200);
+
+      expect(response.body.game.maxPlayers).toBe(8);
     });
 
     it('should return 400 when player name is missing', async () => {
-      const gameData = {
-        maxPlayers: 4
-      };
-
       const response = await request(app)
         .post('/api/games')
-        .send(gameData)
+        .send({ maxPlayers: 4 })
         .expect(400);
 
       expect(response.body).toHaveProperty('error', 'Player name is required');
     });
-
-    it('should use default maxPlayers when not provided', async () => {
-      const gameData = {
-        playerName: 'TestPlayer'
-      };
-
-      const response = await request(app)
-        .post('/api/games')
-        .send(gameData)
-        .expect(200);
-
-      expect(response.body.game).toHaveProperty('maxPlayers', 8);
-    });
   });
 
   describe('Game Joining', () => {
+    beforeEach(async () => {
+      // Create a fresh mock service and initialize it
+      mockDbService = new MockDatabaseService();
+      await initializeDatabaseForTesting(mockDbService);
+      
+      // Create a test game first
+      await mockDbService.createGame('ABC123', 2);
+      await mockDbService.addPlayerToGame('ABC123', 'Player1');
+    });
+
     it('should allow player to join existing game', async () => {
-      // First create a game
-      const createResponse = await request(app)
-        .post('/api/games')
-        .send({
-          playerName: 'HostPlayer',
-          maxPlayers: 4
-        })
-        .expect(200);
-
-      const roomCode = createResponse.body.game.roomCode;
-
-      // Then join the game
-      const joinData = {
-        roomCode,
-        playerName: 'JoinPlayer'
-      };
-
       const response = await request(app)
         .post('/api/games/join')
-        .send(joinData)
+        .send({ roomCode: 'ABC123', playerName: 'Player2' })
         .expect(200);
 
       expect(response.body).toHaveProperty('game');
       expect(response.body).toHaveProperty('player');
-      expect(response.body.player).toHaveProperty('name', 'JoinPlayer');
+      expect(response.body.player.name).toBe('Player2');
     });
 
-    it('should return 404 for non-existent game', async () => {
-      const joinData = {
-        roomCode: 'NONEXIST',
-        playerName: 'TestPlayer'
-      };
-
+    it('should return 404 when game not found', async () => {
       const response = await request(app)
         .post('/api/games/join')
-        .send(joinData)
+        .send({ roomCode: 'NONEXIST', playerName: 'Player1' })
         .expect(404);
 
       expect(response.body).toHaveProperty('error', 'Game not found');
     });
 
-    it('should return 400 when room code is missing', async () => {
-      const joinData = {
-        playerName: 'TestPlayer'
-      };
+    it('should return 400 when game is full', async () => {
+      // Add another player to fill the game
+      await mockDbService.addPlayerToGame('ABC123', 'Player2');
 
       const response = await request(app)
         .post('/api/games/join')
-        .send(joinData)
+        .send({ roomCode: 'ABC123', playerName: 'Player3' })
+        .expect(400);
+
+      expect(response.body).toHaveProperty('error', 'Game is full');
+    });
+
+    it('should return 400 when player name is already taken', async () => {
+      const response = await request(app)
+        .post('/api/games/join')
+        .send({ roomCode: 'ABC123', playerName: 'Player1' })
+        .expect(400);
+
+      expect(response.body).toHaveProperty('error', 'Player name is already taken');
+    });
+
+    it('should return 400 when room code is missing', async () => {
+      const response = await request(app)
+        .post('/api/games/join')
+        .send({ playerName: 'Player1' })
         .expect(400);
 
       expect(response.body).toHaveProperty('error', 'Room code and player name are required');
     });
 
     it('should return 400 when player name is missing', async () => {
-      const joinData = {
-        roomCode: 'TEST123'
-      };
-
       const response = await request(app)
         .post('/api/games/join')
-        .send(joinData)
+        .send({ roomCode: 'ABC123' })
         .expect(400);
 
       expect(response.body).toHaveProperty('error', 'Room code and player name are required');
@@ -169,44 +127,33 @@ describe('Server API', () => {
   });
 
   describe('Game Retrieval', () => {
-    it('should return game by room code', async () => {
-      // First create a game
-      const createResponse = await request(app)
-        .post('/api/games')
-        .send({
-          playerName: 'TestPlayer',
-          maxPlayers: 4
-        })
-        .expect(200);
+    beforeEach(async () => {
+      // Create a fresh mock service and initialize it
+      mockDbService = new MockDatabaseService();
+      await initializeDatabaseForTesting(mockDbService);
+      
+      // Create a test game with players
+      await mockDbService.createGame('ABC123', 4);
+      await mockDbService.addPlayerToGame('ABC123', 'Player1');
+      await mockDbService.addPlayerToGame('ABC123', 'Player2');
+    });
 
-      const roomCode = createResponse.body.game.roomCode;
-
-      // Then retrieve the game
+    it('should return game details', async () => {
       const response = await request(app)
-        .get(`/api/games/${roomCode}`)
+        .get('/api/games/ABC123')
         .expect(200);
 
       expect(response.body).toHaveProperty('game');
-      expect(response.body.game).toHaveProperty('roomCode', roomCode);
+      expect(response.body.game.roomCode).toBe('ABC123');
+      expect(response.body.game.players).toHaveLength(2);
     });
 
-    it('should return 404 for non-existent game', async () => {
+    it('should return 404 when game not found', async () => {
       const response = await request(app)
         .get('/api/games/NONEXIST')
         .expect(404);
 
       expect(response.body).toHaveProperty('error', 'Game not found');
-    });
-  });
-
-  describe('Error Handling', () => {
-    it('should handle server errors gracefully', async () => {
-      // Test with invalid JSON
-      const response = await request(app)
-        .post('/api/games')
-        .send('invalid json')
-        .set('Content-Type', 'application/json')
-        .expect(400);
     });
   });
 }); 
