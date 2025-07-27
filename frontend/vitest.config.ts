@@ -6,6 +6,22 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
+    coverage: {
+      exclude: [
+        '**/*.config.js',
+        '**/*.config.ts',
+        '**/postcss.config.js',
+        '**/tailwind.config.js',
+        '**/vite.config.ts',
+        '**/vitest.config.ts',
+        '**/tsconfig*.json',
+        '**/package.json',
+        '**/node_modules/**',
+        '**/coverage/**',
+        '**/dist/**',
+        '**/build/**',
+      ],
+    },
   },
   resolve: {
     alias: {

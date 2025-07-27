@@ -35,6 +35,12 @@ export class DatabaseService implements IDatabaseService {
     });
   }
 
+  async getGameById(gameId: string): Promise<Game | null> {
+    return this.prisma.game.findUnique({
+      where: { id: gameId }
+    });
+  }
+
   async getGameWithPlayers(roomCode: string): Promise<Game & { players: Player[] } | null> {
     return this.prisma.game.findUnique({
       where: { roomCode },
@@ -42,9 +48,12 @@ export class DatabaseService implements IDatabaseService {
     });
   }
 
-  async updateGameState(roomCode: string, state: any): Promise<Game> {
+  async updateGameState(identifier: string, state: any): Promise<Game> {
+    // Check if identifier is a room code (6 characters) or game ID (cuid)
+    const isRoomCode = identifier.length === 6 && /^[A-Z0-9]+$/.test(identifier);
+    
     return this.prisma.game.update({
-      where: { roomCode },
+      where: isRoomCode ? { roomCode: identifier } : { id: identifier },
       data: { state }
     });
   }
@@ -82,10 +91,22 @@ export class DatabaseService implements IDatabaseService {
     });
   }
 
-  async updatePlayerHand(playerId: string, handCards: number[]): Promise<Player> {
+  async updatePlayerHand(playerId: string, handCards: string[]): Promise<Player> {
     return this.prisma.player.update({
       where: { id: playerId },
       data: { handCards }
+    });
+  }
+
+  async getPlayerById(playerId: string): Promise<Player | null> {
+    return this.prisma.player.findUnique({
+      where: { id: playerId }
+    });
+  }
+
+  async getPlayersByGameId(gameId: string): Promise<Player[]> {
+    return this.prisma.player.findMany({
+      where: { gameId }
     });
   }
 
@@ -142,6 +163,21 @@ export class DatabaseService implements IDatabaseService {
     });
   }
 
+  async getAllCards(): Promise<Card[]> {
+    return this.prisma.card.findMany({
+      orderBy: { chronologicalValue: 'asc' }
+    });
+  }
+
+  async getCardsByIds(cardIds: string[]): Promise<Card[]> {
+    return this.prisma.card.findMany({
+      where: {
+        id: { in: cardIds }
+      },
+      orderBy: { chronologicalValue: 'asc' }
+    });
+  }
+
   // Timeline Operations
   async addCardToTimeline(gameId: string, cardId: string, position: number): Promise<TimelineCard> {
     return this.prisma.timelineCard.create({
@@ -153,7 +189,7 @@ export class DatabaseService implements IDatabaseService {
     });
   }
 
-  async getTimelineForGame(roomCode: string): Promise<TimelineCard[]> {
+  async getTimelineForGame(roomCode: string): Promise<(TimelineCard & { card: Card })[]> {
     const game = await this.findGameByRoomCode(roomCode);
     if (!game) {
       throw new Error('Game not found');
@@ -161,6 +197,14 @@ export class DatabaseService implements IDatabaseService {
 
     return this.prisma.timelineCard.findMany({
       where: { gameId: game.id },
+      include: { card: true },
+      orderBy: { position: 'asc' }
+    });
+  }
+
+  async getTimelineCardsByGameId(gameId: string): Promise<(TimelineCard & { card: Card })[]> {
+    return this.prisma.timelineCard.findMany({
+      where: { gameId },
       include: { card: true },
       orderBy: { position: 'asc' }
     });

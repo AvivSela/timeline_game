@@ -14,11 +14,16 @@ const JoinGamePage: React.FC = () => {
   const [success, setSuccess] = useState<{ gameId: string } | null>(null);
 
   const handleSubmit = async (data: JoinGameRequest) => {
-    const game = await joinGame(data);
-    if (game) {
-      setSuccess({
-        gameId: game.id,
-      });
+    try {
+      const game = await joinGame(data);
+      if (game) {
+        setSuccess({
+          gameId: game.id,
+        });
+      }
+    } catch (error) {
+      // Error is already handled by the useGame hook
+      // The error state will be set automatically
     }
   };
 

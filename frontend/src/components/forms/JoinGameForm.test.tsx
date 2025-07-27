@@ -1,5 +1,4 @@
-import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import JoinGameForm from './JoinGameForm';
@@ -80,7 +79,6 @@ describe('JoinGameForm Component', () => {
     });
 
     it('user can see loading state while form is submitting', async () => {
-      const user = userEvent.setup();
       const mockOnSubmit = vi.fn(() => new Promise<void>(resolve => setTimeout(resolve, 100)));
       render(<JoinGameForm onSubmit={mockOnSubmit} loading={true} />);
       
@@ -103,7 +101,6 @@ describe('JoinGameForm Component', () => {
     });
 
     it('user can see form is disabled during submission', async () => {
-      const user = userEvent.setup();
       const mockOnSubmit = vi.fn(() => new Promise<void>(resolve => setTimeout(resolve, 100)));
       render(<JoinGameForm onSubmit={mockOnSubmit} loading={true} />);
       

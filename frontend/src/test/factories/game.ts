@@ -53,6 +53,7 @@ export const createMockPlayers = (count: number): Player[] => {
 
 // API request/response factories
 export const createMockCreateGameRequest = (overrides: Partial<CreateGameRequest> = {}): CreateGameRequest => ({
+  playerName: 'TestPlayer',
   maxPlayers: 4,
   ...overrides,
 });

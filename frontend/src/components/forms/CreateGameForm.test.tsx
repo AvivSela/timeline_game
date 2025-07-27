@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
@@ -74,7 +74,6 @@ describe('CreateGameForm Component', () => {
     });
 
     it('user can see loading state while form is submitting', async () => {
-      const user = userEvent.setup();
       const mockOnSubmit = vi.fn(() => new Promise<void>(resolve => setTimeout(resolve, 100)));
       render(<CreateGameForm onSubmit={mockOnSubmit} loading={true} />);
       
@@ -97,7 +96,6 @@ describe('CreateGameForm Component', () => {
     });
 
     it('user can see form is disabled during submission', async () => {
-      const user = userEvent.setup();
       const mockOnSubmit = vi.fn(() => new Promise<void>(resolve => setTimeout(resolve, 100)));
       render(<CreateGameForm onSubmit={mockOnSubmit} loading={true} />);
       
@@ -238,7 +236,7 @@ describe('CreateGameForm Component', () => {
         { value: 4, expected: 4, description: 'default value' }
       ];
       
-      for (const { value, expected, description } of boundaryValues) {
+      for (const { value, expected } of boundaryValues) {
         fireEvent.change(slider, { target: { value: value.toString() } });
         expect(slider).toHaveValue(value.toString());
         expect(valueDisplay).toHaveTextContent(value.toString());
@@ -266,7 +264,6 @@ describe('CreateGameForm Component', () => {
 
   describe('User Interactions', () => {
     it('user can interact with the slider to change max players', async () => {
-      const user = userEvent.setup();
       const mockOnSubmit = vi.fn();
       render(<CreateGameForm onSubmit={mockOnSubmit} />);
       
@@ -334,7 +331,6 @@ describe('CreateGameForm Component', () => {
     });
 
     it('user can navigate form using keyboard', async () => {
-      const user = userEvent.setup();
       const mockOnSubmit = vi.fn();
       render(<CreateGameForm onSubmit={mockOnSubmit} />);
       

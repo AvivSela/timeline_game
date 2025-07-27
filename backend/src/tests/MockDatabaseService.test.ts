@@ -183,14 +183,14 @@ describe('MockDatabaseService', () => {
         const player = await mockService.addPlayerToGame('TEST123', 'TestPlayer');
         const newHand = [1, 2, 3];
         
-        const updatedPlayer = await mockService.updatePlayerHand(player.id, newHand);
+        const updatedPlayer = await mockService.updatePlayerHand(player.id, newHand.map(id => id.toString()));
         
-        expect(updatedPlayer.handCards).toEqual(newHand);
+        expect(updatedPlayer.handCards).toEqual(newHand.map(id => id.toString()));
         expect(updatedPlayer.updatedAt).toBeInstanceOf(Date);
       });
 
       it('should throw error for non-existent player', async () => {
-        await expect(mockService.updatePlayerHand('NONEXISTENT', [1, 2, 3])).rejects.toThrow('Player not found');
+        await expect(mockService.updatePlayerHand('NONEXISTENT', ['1', '2', '3'])).rejects.toThrow('Player not found');
       });
     });
 

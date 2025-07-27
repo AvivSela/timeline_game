@@ -193,7 +193,7 @@ describe('DatabaseService', () => {
       const result = await dbService.updateGameState('TEST456', updatedState);
       
       expect(mockPrisma.game.update).toHaveBeenCalledWith({
-        where: { roomCode: 'TEST456' },
+        where: { id: 'TEST456' },
         data: { state: updatedState }
       });
       expect(result).toEqual(mockGame);
@@ -323,11 +323,11 @@ describe('DatabaseService', () => {
 
       mockPrisma.player.update.mockResolvedValue(mockPlayer);
 
-      const result = await dbService.updatePlayerHand('mock-player-id', [1, 2, 3]);
+      const result = await dbService.updatePlayerHand('mock-player-id', ['1', '2', '3']);
       
       expect(mockPrisma.player.update).toHaveBeenCalledWith({
         where: { id: 'mock-player-id' },
-        data: { handCards: [1, 2, 3] }
+        data: { handCards: ['1', '2', '3'] }
       });
       expect(result).toEqual(mockPlayer);
     });

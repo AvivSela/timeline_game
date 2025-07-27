@@ -4,6 +4,7 @@ export interface Player {
   isHost: boolean;
   isReady: boolean;
   joinedAt: string;
+  score?: number;
 }
 
 export interface Game {
@@ -41,4 +42,43 @@ export interface GameError {
   message: string;
   code?: string;
   details?: Record<string, any>;
+}
+
+export interface CardData {
+  id: string;
+  name: string;
+  description: string;
+  chronologicalValue: number;
+  difficulty: 'EASY' | 'MEDIUM' | 'HARD';
+  category: string;
+  imageUrl?: string;
+}
+
+export interface TimelineCard {
+  id: string;
+  position: number;
+  card: CardData;
+}
+
+export interface TurnState {
+  currentPlayerId: string | null;
+  currentPlayerName: string | null;
+  turnOrder: string[];
+  turnNumber: number;
+}
+
+export interface TurnInfo {
+  currentPlayer: Player | null;
+  turnOrder: Player[];
+  turnNumber: number;
+  isGameOver: boolean;
+}
+
+export interface ValidationResult {
+  isValid: boolean;
+  correctPosition: number;
+  actualPosition: number;
+  message: string;
+  cardName: string;
+  cardDate?: number;
 } 

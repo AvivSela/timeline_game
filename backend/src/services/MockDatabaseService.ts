@@ -44,6 +44,10 @@ export class MockDatabaseService implements IDatabaseService {
     return this.games.get(roomCode) || null;
   }
 
+  async getGameById(gameId: string): Promise<Game | null> {
+    return Array.from(this.games.values()).find(game => game.id === gameId) || null;
+  }
+
   async getGameWithPlayers(roomCode: string): Promise<(Game & { players: Player[] }) | null> {
     const game = this.games.get(roomCode);
     if (!game) return null;
@@ -96,13 +100,21 @@ export class MockDatabaseService implements IDatabaseService {
     return player;
   }
 
-  async updatePlayerHand(playerId: string, handCards: number[]): Promise<Player> {
+  async updatePlayerHand(playerId: string, handCards: string[]): Promise<Player> {
     const player = this.players.get(playerId);
     if (!player) throw new Error('Player not found');
 
     const updatedPlayer = { ...player, handCards, updatedAt: new Date() };
     this.players.set(playerId, updatedPlayer);
     return updatedPlayer;
+  }
+
+  async getPlayerById(playerId: string): Promise<Player | null> {
+    return this.players.get(playerId) || null;
+  }
+
+  async getPlayersByGameId(gameId: string): Promise<Player[]> {
+    return Array.from(this.players.values()).filter(player => player.gameId === gameId);
   }
 
   async setCurrentTurn(playerId: string): Promise<Player> {
@@ -170,6 +182,14 @@ export class MockDatabaseService implements IDatabaseService {
     return Array.from(this.cards.values()).filter(card => card.category === category);
   }
 
+  async getAllCards(): Promise<Card[]> {
+    return Array.from(this.cards.values());
+  }
+
+  async getCardsByIds(cardIds: string[]): Promise<Card[]> {
+    return Array.from(this.cards.values()).filter(card => cardIds.includes(card.id));
+  }
+
   // Timeline Operations
   async addCardToTimeline(gameId: string, cardId: string, position: number): Promise<TimelineCard> {
     this.timelineCounter++;
@@ -185,13 +205,27 @@ export class MockDatabaseService implements IDatabaseService {
     return timelineCard;
   }
 
-  async getTimelineForGame(roomCode: string): Promise<TimelineCard[]> {
+  async getTimelineForGame(roomCode: string): Promise<(TimelineCard & { card: Card })[]> {
     const game = this.games.get(roomCode);
     if (!game) throw new Error('Game not found');
 
     return Array.from(this.timelineCards.values())
       .filter(tc => tc.gameId === game.id)
-      .sort((a, b) => a.position - b.position);
+      .sort((a, b) => a.position - b.position)
+      .map(tc => ({
+        ...tc,
+        card: this.cards.get(tc.cardId)!
+      }));
+  }
+
+  async getTimelineCardsByGameId(gameId: string): Promise<(TimelineCard & { card: Card })[]> {
+    return Array.from(this.timelineCards.values())
+      .filter(tc => tc.gameId === gameId)
+      .sort((a, b) => a.position - b.position)
+      .map(tc => ({
+        ...tc,
+        card: this.cards.get(tc.cardId)!
+      }));
   }
 
   async removeCardFromTimeline(timelineCardId: string): Promise<void> {

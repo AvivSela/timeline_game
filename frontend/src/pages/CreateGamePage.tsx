@@ -14,12 +14,17 @@ const CreateGamePage: React.FC = () => {
   const [success, setSuccess] = useState<{ roomCode: string; gameId: string } | null>(null);
 
   const handleSubmit = async (data: CreateGameRequest) => {
-    const game = await createGame(data);
-    if (game) {
-      setSuccess({
-        roomCode: game.roomCode,
-        gameId: game.id,
-      });
+    try {
+      const game = await createGame(data);
+      if (game) {
+        setSuccess({
+          roomCode: game.roomCode,
+          gameId: game.id,
+        });
+      }
+    } catch (error) {
+      // Error is already handled by the useGame hook
+      // The error state will be set automatically
     }
   };
 

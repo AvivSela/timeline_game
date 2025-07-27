@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@/test/utils';
+import { render, screen, fireEvent } from '@/test/utils';
 import userEvent from '@testing-library/user-event';
 import Input from './Input';
 
@@ -149,7 +149,6 @@ describe('Input Component', () => {
     });
 
     it('user can see input handles onBlur event', async () => {
-      const user = userEvent.setup();
       const handleBlur = vi.fn();
       
       render(<Input label="Blur Input" onBlur={handleBlur} />);
@@ -190,14 +189,13 @@ describe('Input Component', () => {
 
   describe('Edge Cases', () => {
     it('user can see input handles missing onChange gracefully', async () => {
-      const user = userEvent.setup();
       
       render(<Input label="No Change Handler" />);
       
       const input = screen.getByRole('textbox', { name: /no change handler/i });
       
       // User can type without errors
-      await user.type(input, 'test');
+      fireEvent.change(input, { target: { value: 'test' } });
       // No error should be thrown
     });
 

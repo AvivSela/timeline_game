@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import HomePage from '@/pages/HomePage';
 import CreateGamePage from '@/pages/CreateGamePage';
 import JoinGamePage from '@/pages/JoinGamePage';
+import GameRoom from '@/pages/GameRoom';
 
 const App: React.FC = () => {
   return (
@@ -12,7 +13,7 @@ const App: React.FC = () => {
           <Route path="/" element={<HomePage />} />
           <Route path="/create-game" element={<CreateGamePage />} />
           <Route path="/join-game" element={<JoinGamePage />} />
-          <Route path="/game/:gameId" element={<div>Game Room (Coming in Sprint 2)</div>} />
+          <Route path="/game/:gameId" element={<GameRoom />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>

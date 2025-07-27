@@ -87,7 +87,7 @@ export const accessibilityHelpers = {
 
 // Test helpers for common user workflows
 export const workflowHelpers = {
-  createGame: async (screen: any, maxPlayers: number = 4) => {
+  createGame: async (screen: any) => {
     const user = userEvent.setup();
     
     // Navigate to create game page
