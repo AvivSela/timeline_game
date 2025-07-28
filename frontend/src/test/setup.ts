@@ -42,6 +42,7 @@ vi.mock('react-router-dom', () => ({
   Route: ({ children }: { children: React.ReactNode }) => React.createElement('div', {}, children),
   useNavigate: () => vi.fn(),
   useParams: () => ({}),
+  useSearchParams: () => [new URLSearchParams(), vi.fn()],
   Link: ({ children, to }: { children: React.ReactNode; to: string }) => 
     React.createElement('a', { href: to }, children),
 }));

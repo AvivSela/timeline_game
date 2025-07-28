@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import GameBoard from '@/components/game/GameBoard';
 import PlayerHand from '@/components/game/PlayerHand';
 import PlayerList from '@/components/game/PlayerList';
@@ -20,6 +20,7 @@ interface GameEvent {
 
 const GameRoom: React.FC = () => {
   const { gameId } = useParams<{ gameId: string }>();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,6 +35,25 @@ const GameRoom: React.FC = () => {
 
   // Get current player ID from localStorage
   const [currentPlayerId, setCurrentPlayerId] = useState<string | null>(null);
+
+  // Session recovery function
+  const tryRecoverPlayerSession = useCallback(async (gameData: any) => {
+    const storedPlayerName = localStorage.getItem('currentPlayerName');
+    
+    if (storedPlayerName && gameData.players) {
+      // Try to find the player by name
+      const matchingPlayer = gameData.players.find((p: any) => p.name === storedPlayerName);
+      
+      if (matchingPlayer) {
+        // Restore the session
+        localStorage.setItem('currentPlayerId', matchingPlayer.id);
+        setCurrentPlayerId(matchingPlayer.id);
+        return true;
+      }
+    }
+    
+    return false;
+  }, []);
 
   useEffect(() => {
     // Load current player ID from localStorage
@@ -56,14 +76,16 @@ const GameRoom: React.FC = () => {
         return;
       }
 
-      if (!currentPlayerId) {
+      // Get current player ID from localStorage as fallback
+      const playerId = currentPlayerId || localStorage.getItem('currentPlayerId');
+      if (!playerId) {
         console.error('Current player ID not available');
         setError('Player session not found. Please join the game again.');
         return;
       }
 
       // Load player hand
-      const handResponse = await gameService.getPlayerHand(codeToUse, currentPlayerId);
+      const handResponse = await gameService.getPlayerHand(codeToUse, playerId);
       setPlayerHand(handResponse.hand);
 
       // Load timeline
@@ -73,7 +95,7 @@ const GameRoom: React.FC = () => {
       // Load turn info
       const turnResponse = await gameService.getTurnInfo(codeToUse);
       setTurnInfo(turnResponse.turnInfo);
-      setIsCurrentTurn(turnResponse.turnInfo.currentPlayer?.id === currentPlayerId);
+      setIsCurrentTurn(turnResponse.turnInfo.currentPlayer?.id === playerId);
 
       // Load players (refresh)
       const gameResponse = await gameService.getGame(gameId!);
@@ -85,7 +107,13 @@ const GameRoom: React.FC = () => {
 
   // Set up polling for game updates
   useEffect(() => {
-    if (!roomCode || !currentPlayerId) {
+    if (!roomCode) {
+      return;
+    }
+
+    // Check if we have a player ID (either from state or localStorage)
+    const playerId = currentPlayerId || localStorage.getItem('currentPlayerId');
+    if (!playerId) {
       return;
     }
 
@@ -102,6 +130,29 @@ const GameRoom: React.FC = () => {
       const gameResponse = await gameService.getGame(gameId!);
       setPlayers(gameResponse.players);
       setRoomCode(gameResponse.roomCode);
+
+      // If no current player ID, try to recover the session
+      if (!currentPlayerId) {
+        const sessionRecovered = await tryRecoverPlayerSession(gameResponse);
+        
+        if (!sessionRecovered) {
+          // If session recovery failed, redirect to join game
+          setError('Player session not found. Please join the game again.');
+          setLoading(false);
+          return;
+        }
+        
+        // Wait a bit for the state to update, then proceed
+        await new Promise(resolve => setTimeout(resolve, 0));
+      }
+
+      // Double-check that we have a current player ID
+      const finalPlayerId = localStorage.getItem('currentPlayerId');
+      if (!finalPlayerId) {
+        setError('Player session not found. Please join the game again.');
+        setLoading(false);
+        return;
+      }
 
       // Start the game if not already started
       if (gameResponse.status === 'waiting') {
@@ -125,6 +176,13 @@ const GameRoom: React.FC = () => {
       }
       await gameService.startGame(codeToUse);
       addEvent('game_started', 'Game started!');
+      
+      // Ensure we have the current player ID before loading game state
+      const playerId = localStorage.getItem('currentPlayerId');
+      if (!playerId) {
+        throw new Error('Current player ID not available');
+      }
+      
       await loadGameState(codeToUse);
     } catch (err) {
       setError('Failed to start game');
@@ -198,7 +256,23 @@ const GameRoom: React.FC = () => {
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <ErrorMessage message={error} />
+        <div className="max-w-md mx-auto text-center">
+          <ErrorMessage message={error} />
+          <div className="mt-6 space-y-3">
+            <button
+              onClick={() => navigate(`/join-game?roomCode=${roomCode || ''}`)}
+              className="w-full bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+            >
+              Rejoin Game
+            </button>
+            <button
+              onClick={() => navigate('/')}
+              className="w-full bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition-colors"
+            >
+              Back to Home
+            </button>
+          </div>
+        </div>
       </div>
     );
   }

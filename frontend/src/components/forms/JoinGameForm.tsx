@@ -10,6 +10,7 @@ interface JoinGameFormProps {
   onSubmit: (data: JoinGameRequest) => Promise<void>;
   loading?: boolean;
   error?: string;
+  initialRoomCode?: string;
 }
 
 const schema = yup.object({
@@ -30,6 +31,7 @@ const JoinGameForm: React.FC<JoinGameFormProps> = ({
   onSubmit,
   loading = false,
   error,
+  initialRoomCode = '',
 }) => {
   const {
     register,
@@ -38,7 +40,18 @@ const JoinGameForm: React.FC<JoinGameFormProps> = ({
     setValue,
   } = useForm<JoinGameRequest>({
     resolver: yupResolver(schema),
+    defaultValues: {
+      roomCode: initialRoomCode,
+      playerName: '',
+    },
   });
+
+  // Set initial room code when component mounts or initialRoomCode changes
+  React.useEffect(() => {
+    if (initialRoomCode) {
+      setValue('roomCode', initialRoomCode);
+    }
+  }, [initialRoomCode, setValue]);
 
   const handleFormSubmit = async (data: JoinGameRequest) => {
     await onSubmit(data);

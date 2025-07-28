@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Header from '@/components/layout/Header';
 import Container from '@/components/layout/Container';
 import JoinGameForm from '@/components/forms/JoinGameForm';
@@ -10,8 +10,18 @@ import { SUCCESS_MESSAGES } from '@/utils/constants';
 
 const JoinGamePage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { joinGame, loading, error } = useGame();
   const [success, setSuccess] = useState<{ gameId: string } | null>(null);
+  const [initialRoomCode, setInitialRoomCode] = useState<string>('');
+
+  // Get room code from URL parameters
+  useEffect(() => {
+    const roomCode = searchParams.get('roomCode');
+    if (roomCode) {
+      setInitialRoomCode(roomCode);
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (data: JoinGameRequest) => {
     try {
@@ -114,6 +124,7 @@ const JoinGamePage: React.FC = () => {
                 onSubmit={handleSubmit}
                 loading={loading}
                 error={error?.message}
+                initialRoomCode={initialRoomCode}
               />
             </div>
           </div>
